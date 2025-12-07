@@ -3,13 +3,12 @@
 #include "pch.hxx"
 #include <array>
 #include <cstdint>
-#include <cstdint>           
 #include <cstdio>            
 #include <cstdlib>            
 #include <iostream>       
 #include <map>
 #include <memory>
-#include <windows.h>       
+#include <windows.h>
 
 class dma_handler 
 {
@@ -105,21 +104,20 @@ private:
         return pid;
     }
 
-    auto CC_TO_LPSTR(const char* in) -> LPSTR
-    {
-        LPSTR out = new char[strlen(in) + 1];
-        strcpy_s(out, strlen(in) + 1, in);
-
-        return out;
-    }
-
     auto get_registry_value(const char* path, e_registry_type type) -> std::string 
     {
         BYTE buffer[0x128];
         DWORD _type = (DWORD)type;
         DWORD size = sizeof(buffer);
 
-        if (!VMMDLL_WinReg_QueryValueExU(request->global_handle, CC_TO_LPSTR(path), &_type, buffer, &size))
+        LPSTR path_copy = new char[strlen(path) + 1];
+        strcpy_s(path_copy, strlen(path) + 1, path);
+
+        bool result = VMMDLL_WinReg_QueryValueExU(request->global_handle, path_copy, &_type, buffer, &size);
+        
+        delete[] path_copy;
+
+        if (!result)
         {
             return "failed to query mem ptr handle";
         }
@@ -155,19 +153,28 @@ public:
     {
         std::string win = this->get_registry_value("HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentBuild", e_registry_type::sz);
         int Winver = 0;
-        if (!win.empty())
+        if (!win.empty() && win != "failed to query mem ptr handle")
             Winver = std::stoi(win);
         else
             return false;
 
         key_data.pid = this->get_pid("winlogon.exe");
+        if (key_data.pid == 0)
+            return false;
+
         if (Winver > 22000)
         {
             auto pids = this->get_pid_list("csrss.exe");
+            if (pids.empty())
+                return false;
+
             for (size_t i = 0; i < pids.size(); i++)
             {
                 auto pid = pids[i];
                 uintptr_t tmp = VMMDLL_ProcessGetModuleBaseU(request->global_handle, pid, (LPSTR)"win32ksgd.sys");
+                if (tmp == 0)
+                    continue;
+
                 uintptr_t g_session_global_slots = tmp + 0x3110;
                 uintptr_t user_session_state = this->read<uintptr_t>(this->read<uintptr_t>(this->read<uintptr_t>(g_session_global_slots, pid), pid), pid);
                 key_data.gaf_async_key_state = user_session_state + 0x3690;

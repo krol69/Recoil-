@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "device./kmbox/bpro.hxx"
+#include "device/kmbox/bpro.hxx"
 #include "device/dma/communication.hxx"
 #include "recoil.hxx"
 #include "frontend/start/initialization.hxx"
