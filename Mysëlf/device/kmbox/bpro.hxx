@@ -60,8 +60,6 @@ namespace bpro
         {
             serial_handle = CreateFileA(port_name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
-            bool extra_flags = false;
-
             if (serial_handle == INVALID_HANDLE_VALUE)
                 return false;
 
@@ -78,22 +76,6 @@ namespace bpro
             serial_params.ByteSize = 8;
             serial_params.StopBits = ONESTOPBIT;
             serial_params.Parity = NOPARITY;
-
-            if (extra_flags)
-            {
-                serial_params.fBinary = 1;
-                serial_params.fOutxCtsFlow = 0;
-                serial_params.fOutxDsrFlow = 0;
-                serial_params.fRtsControl = RTS_CONTROL_DISABLE;
-                serial_params.fDtrControl = DTR_CONTROL_DISABLE;
-                serial_params.fDsrSensitivity = 0;
-
-                serial_params.fTXContinueOnXoff = 0;
-                serial_params.fOutX = 0;
-                serial_params.fInX = 0;
-                serial_params.fErrorChar = 0;
-                serial_params.fNull = 0;
-            }
 
             if (!SetCommState(serial_handle, &serial_params))
             {
