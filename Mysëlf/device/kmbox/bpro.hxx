@@ -58,6 +58,9 @@ namespace bpro
 
         auto open_port(HANDLE& serial_handle, const char* port_name, DWORD baud_rate) const -> bool
         {
+            if (!port_name || strlen(port_name) == 0)
+                return false;
+
             serial_handle = CreateFileA(port_name, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
 
             bool extra_flags = false;
@@ -147,6 +150,9 @@ namespace bpro
 
         __forceinline auto send_command(std::string_view command) const -> void
         {
+            if (command.empty() || !connection_t->bpro_handle || connection_t->bpro_handle == INVALID_HANDLE_VALUE)
+                return;
+
             DWORD bytes_written;
             WriteFile(connection_t->bpro_handle, command.data(), static_cast<DWORD>(command.size()), &bytes_written, 0);
         }
@@ -156,6 +162,17 @@ namespace bpro
         __forceinline auto move(int x, int y, int beizer) -> void
         {
             constexpr auto cmd_buffer_size = 24;
+            constexpr auto max_move_value = 127;
+            constexpr auto min_move_value = -127;
+            
+            // Validate input parameters
+            if (x < min_move_value || x > max_move_value || 
+                y < min_move_value || y > max_move_value ||
+                beizer < 0 || beizer > 100)
+            {
+                return;
+            }
+            
             char cmd[24];
 
             const int command_length = std::snprintf(cmd, cmd_buffer_size, "km.move(%d, %d, %d)\r\n", x, y, beizer);

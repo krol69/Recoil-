@@ -53,8 +53,8 @@ public:
 
 	__forceinline auto end() -> void
 	{
-		auto ent_time = start_time + target_frame_duration;
-		while (std::chrono::high_resolution_clock::now() < ent_time) {}
+		auto end_time = start_time + target_frame_duration;
+		while (std::chrono::high_resolution_clock::now() < end_time) {}
 	}
 
 private:
