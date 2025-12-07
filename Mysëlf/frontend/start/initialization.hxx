@@ -80,12 +80,22 @@ namespace n_rendering
 			D3D_FEATURE_LEVEL feature_level;
 			const D3D_FEATURE_LEVEL feature_levels[1] = { D3D_FEATURE_LEVEL_11_0 };
 
-			D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, feature_levels, 1, D3D11_SDK_VERSION, &swap_chain_description, &swap_chain, &directx_device, &feature_level, &directx_device_context);
+			HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, feature_levels, 1, D3D11_SDK_VERSION, &swap_chain_description, &swap_chain, &directx_device, &feature_level, &directx_device_context);
+			if (FAILED(hr))
+				return false;
+
 			ID3D11Texture2D* back_buffer;
 
-			swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+			hr = swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
+			if (FAILED(hr))
+				return false;
 
 			auto status = directx_device->CreateRenderTargetView(back_buffer, NULL, &render_target_view);
+			if (FAILED(status))
+			{
+				back_buffer->Release();
+				return false;
+			}
 
 			back_buffer->Release();
 			ImGui::CreateContext();
@@ -94,11 +104,16 @@ namespace n_rendering
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
-			ImGui_ImplWin32_Init(global_window_handle);
-			ImGui_ImplDX11_Init(directx_device, directx_device_context);
+			if (!ImGui_ImplWin32_Init(global_window_handle))
+				return false;
+
+			if (!ImGui_ImplDX11_Init(directx_device, directx_device_context))
+				return false;
 
 			D3DX11_IMAGE_LOAD_INFO image_load_info; ID3DX11ThreadPump* thread_pump{ nullptr };
-			D3DX11CreateShaderResourceViewFromMemory(directx_device, girl_begging_bytes, sizeof(girl_begging_bytes), &image_load_info, thread_pump, &byte_loading::girl_begging, NULL);
+			hr = D3DX11CreateShaderResourceViewFromMemory(directx_device, girl_begging_bytes, sizeof(girl_begging_bytes), &image_load_info, thread_pump, &byte_loading::girl_begging, NULL);
+			if (FAILED(hr))
+				return false;
 
 			ImFontConfig font_config;
 
