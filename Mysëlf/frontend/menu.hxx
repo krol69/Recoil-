@@ -6,11 +6,13 @@
 #include "start/imgui/backend/ImGui_impl_win32.h"
 #include "start/imgui/imgui.h"
 #include <basetsd.h>
+#include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <processthreadsapi.h>
 #include <recoil.hxx>
 #include <string>
+#include <thread>
 #include <windef.h>
 #include <wingdi.h>
 #include <WinUser.h>
@@ -230,16 +232,25 @@ public:
 				if (outlined_button(button_text.c_str(), ImVec2(300, 26)))
 				{
 					bool selected = false;
+					auto start_time = std::chrono::steady_clock::now();
+					const auto timeout = std::chrono::seconds(10);
+					
 					while (!selected)
 					{
+						// Add timeout to prevent infinite loop
+						if (std::chrono::steady_clock::now() - start_time > timeout)
+							break;
+
 						for (int i = 0; i <= 0xA5; i++)
 						{
 							if (GetAsyncKeyState(i) & 1)
 							{
 								recoil_obj.settings.toggle_key = i;
 								selected = true;
+								break;
 							}
 						}
+						std::this_thread::sleep_for(std::chrono::milliseconds(10));
 					}
 				}
 			}

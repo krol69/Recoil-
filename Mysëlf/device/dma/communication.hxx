@@ -153,19 +153,28 @@ public:
     {
         std::string win = this->get_registry_value("HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\CurrentBuild", e_registry_type::sz);
         int Winver = 0;
-        if (!win.empty())
+        if (!win.empty() && win != "failed to query mem ptr handle")
             Winver = std::stoi(win);
         else
             return false;
 
         key_data.pid = this->get_pid("winlogon.exe");
+        if (key_data.pid == 0)
+            return false;
+
         if (Winver > 22000)
         {
             auto pids = this->get_pid_list("csrss.exe");
+            if (pids.empty())
+                return false;
+
             for (size_t i = 0; i < pids.size(); i++)
             {
                 auto pid = pids[i];
                 uintptr_t tmp = VMMDLL_ProcessGetModuleBaseU(request->global_handle, pid, (LPSTR)"win32ksgd.sys");
+                if (tmp == 0)
+                    continue;
+
                 uintptr_t g_session_global_slots = tmp + 0x3110;
                 uintptr_t user_session_state = this->read<uintptr_t>(this->read<uintptr_t>(this->read<uintptr_t>(g_session_global_slots, pid), pid), pid);
                 key_data.gaf_async_key_state = user_session_state + 0x3690;
