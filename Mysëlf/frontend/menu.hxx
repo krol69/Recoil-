@@ -6,11 +6,13 @@
 #include "start/imgui/backend/ImGui_impl_win32.h"
 #include "start/imgui/imgui.h"
 #include <basetsd.h>
+#include <chrono>
 #include <cstdlib>
 #include <memory>
 #include <processthreadsapi.h>
 #include <recoil.hxx>
 #include <string>
+#include <thread>
 #include <windef.h>
 #include <wingdi.h>
 #include <WinUser.h>
@@ -238,7 +240,12 @@ public:
 							{
 								recoil_obj.settings.toggle_key = i;
 								selected = true;
+								break;
 							}
+						}
+						if (!selected)
+						{
+							std::this_thread::sleep_for(std::chrono::milliseconds(10));
 						}
 					}
 				}
