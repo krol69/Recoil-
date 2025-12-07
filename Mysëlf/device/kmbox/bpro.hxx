@@ -153,12 +153,12 @@ namespace bpro
 
     public:
 
-        __forceinline auto move(int x, int y, int beizer) -> void
+        __forceinline auto move(int x, int y, int bezier) -> void
         {
             constexpr auto cmd_buffer_size = 24;
             char cmd[24];
 
-            const int command_length = std::snprintf(cmd, cmd_buffer_size, "km.move(%d, %d, %d)\r\n", x, y, beizer);
+            const int command_length = std::snprintf(cmd, cmd_buffer_size, "km.move(%d, %d, %d)\r\n", x, y, bezier);
             if (command_length > 0 and static_cast<size_t>(command_length) < cmd_buffer_size)
             {
                 this->send_command(cmd);
