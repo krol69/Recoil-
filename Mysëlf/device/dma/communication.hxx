@@ -3,13 +3,12 @@
 #include "pch.hxx"
 #include <array>
 #include <cstdint>
-#include <cstdint>           
 #include <cstdio>            
 #include <cstdlib>            
 #include <iostream>       
 #include <map>
 #include <memory>
-#include <windows.h>       
+#include <windows.h>
 
 class dma_handler 
 {
@@ -119,7 +118,11 @@ private:
         DWORD _type = (DWORD)type;
         DWORD size = sizeof(buffer);
 
-        if (!VMMDLL_WinReg_QueryValueExU(request->global_handle, CC_TO_LPSTR(path), &_type, buffer, &size))
+        LPSTR path_lpstr = CC_TO_LPSTR(path);
+        bool result = VMMDLL_WinReg_QueryValueExU(request->global_handle, path_lpstr, &_type, buffer, &size);
+        delete[] path_lpstr;
+
+        if (!result)
         {
             return "failed to query mem ptr handle";
         }
@@ -128,7 +131,7 @@ private:
         return std::string(wstr.begin(), wstr.end());
     }
 
-    auto get_pid_list(std::string name) -> std::vector<int>
+    auto get_pid_list(const std::string& name) -> std::vector<int>
     {
         PVMMDLL_PROCESS_INFORMATION process_info = 0;
         DWORD total_processes = 0;
