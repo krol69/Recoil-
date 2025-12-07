@@ -131,7 +131,7 @@ private:
         return std::string(wstr.begin(), wstr.end());
     }
 
-    auto get_pid_list(std::string name) -> std::vector<int>
+    auto get_pid_list(const std::string& name) -> std::vector<int>
     {
         PVMMDLL_PROCESS_INFORMATION process_info = 0;
         DWORD total_processes = 0;

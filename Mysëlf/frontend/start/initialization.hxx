@@ -80,7 +80,12 @@ namespace n_rendering
 			D3D_FEATURE_LEVEL feature_level;
 			const D3D_FEATURE_LEVEL feature_levels[1] = { D3D_FEATURE_LEVEL_11_0 };
 
-			D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, feature_levels, 1, D3D11_SDK_VERSION, &swap_chain_description, &swap_chain, &directx_device, &feature_level, &directx_device_context);
+			HRESULT hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, feature_levels, 1, D3D11_SDK_VERSION, &swap_chain_description, &swap_chain, &directx_device, &feature_level, &directx_device_context);
+			if (FAILED(hr) || !directx_device || !swap_chain)
+			{
+				return false;
+			}
+
 			ID3D11Texture2D* back_buffer;
 
 			swap_chain->GetBuffer(0, IID_PPV_ARGS(&back_buffer));
