@@ -1,6 +1,6 @@
-# Myself - Rainbow Six Siege Anti-Recoil System
 
-![Preview](https://i.imgur.com/NX6GedS.png)
+
+
 
 ## Overview
 
